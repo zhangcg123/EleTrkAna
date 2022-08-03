@@ -36,6 +36,7 @@ for i,event in enumerate(events):
     eles = handle.product()
 
     for e in eles:
+	print len(e.electronIDs())
 	userfloats = []
 	for name in userfloatnames:
 		if e.hasUserFloat (name ): 

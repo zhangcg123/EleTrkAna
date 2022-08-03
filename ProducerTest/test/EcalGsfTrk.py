@@ -20,6 +20,13 @@ process.ProducerTest = cms.EDProducer('ProducerTest',
 	beamSpotSrc  = cms.untracked.InputTag("offlineBeamSpot"),
 )
 
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+			runEnergyCorrections=False,
+			runVID=True,
+			eleIDModules=['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff'],
+			era='2018-UL')
+
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('ecalgsftrk.root'),
     outputCommands = cms.untracked.vstring(

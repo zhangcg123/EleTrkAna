@@ -154,6 +154,8 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	   pat::Electron e = elesCollection->at(i);
 	   
+	   std::cout<<e.electronID("cutBasedPhotonID-Fall17-94X-V2-tight")<<std::endl;
+	   	   
 	   ProducerTest::gsfTrkMode_ParamCombine( e );
 
 	   momatPCA_ParamCombine( e, bs );
