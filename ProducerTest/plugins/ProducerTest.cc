@@ -70,10 +70,12 @@ class ProducerTest : public edm::stream::EDProducer<> {
       virtual void beginStream(edm::StreamID) override;
       virtual void produce(edm::Event&, const edm::EventSetup&) override;
       virtual void endStream() override;
-      void ParamCombine( float &p, float &perr, float &e, float &eerr, int &elc, float &f, float &ferr );
-      void gsfTrkMode_ParamCombine( reco::GsfElectron &ele );
-      void momatPCA_ParamCombine( reco::GsfElectron &ele, const reco::BeamSpot &bs );
-      void momatBS_ParamCombine( reco::GsfElectron &ele, const reco::BeamSpot &bs, const edm::EventSetup& setup );
+      
+      void ParamCombine( const float &p, const float &perr, const float &e, const float &eerr, const int &elc, float &f, float &ferr );
+      
+      void gsfTrkMode_ParamCombine( pat::Electron &ele );
+      void momatPCA_ParamCombine( pat::Electron &ele, const reco::BeamSpot &bs );
+      void momatBS_ParamCombine( pat::Electron &ele, const reco::BeamSpot &bs, const edm::EventSetup& setup );
 
       //virtual void beginRun(edm::Run const&, edm::EventSetup const&) override;
       //virtual void endRun(edm::Run const&, edm::EventSetup const&) override;
@@ -107,7 +109,7 @@ ProducerTest::ProducerTest(const edm::ParameterSet& iConfig):
   //magneticFieldToken_(esConsumes<MagneticField, IdealMagneticFieldRecord>()),
   //trackerGeometryToken_(esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>())
 {
-	produces<std::vector<reco::GsfElectron> >();
+	produces<std::vector<pat::Electron> >();
 }
 
 
@@ -135,6 +137,7 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    iEvent.getByToken(beamSpotSrc_,beamSpot);
    const reco::BeamSpot bs = *beamSpot;
    
+   //input electrons
    edm::Handle<std::vector<reco::GsfElectron> > elesCollection;
    iEvent.getByToken(elecSrc_ , elesCollection);
 
@@ -144,77 +147,68 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    //auto const& theTrackerGeometry = iSetup.getData(trackerGeometryToken_);
 
    // output eles
-   std::vector<reco::GsfElectron> *theEles  = new std::vector<reco::GsfElectron>;
+   std::vector<pat::Electron> *theEles  = new std::vector<pat::Electron>;
    theEles->clear();
 
    for ( unsigned int i = 0; i < elesCollection->size(); i++ ){
 
 	   pat::Electron e = elesCollection->at(i);
+	   
 	   ProducerTest::gsfTrkMode_ParamCombine( e );
 
 	   momatPCA_ParamCombine( e, bs );
 	   
-	   //momatBS_ParamCombine( e, bs, iSetup );
+	   momatBS_ParamCombine( e, bs, iSetup );
 
 	   theEles->push_back( e );
 
    }
 
-   std::unique_ptr<std::vector<reco::GsfElectron> > ptr( theEles );
+   std::unique_ptr<std::vector<pat::Electron> > ptr( theEles );
    iEvent.put( std::move( ptr ) );
 
 }
 
 
 void
-ProducerTest::gsfTrkMode_ParamCombine( reco::GsfElectron &ele ){
+ProducerTest::gsfTrkMode_ParamCombine( pat::Electron &ele ){
 	
 	float finalE = ele.correctedEcalEnergy();
 	float finalEerr = ele.ecalEnergyError();
 
-	int elClass = ele.classification();
+	const int elClass = ele.classification();
 
 	auto const gsfTrk = ele.gsfTrack();
-	float trkP = gsfTrk->pMode();
-	float trkPErr = std::abs(gsfTrk->qoverpModeError())*trkP*trkP;
+	const float trkP = gsfTrk->pMode();
+	const float trkPErr = std::abs(gsfTrk->qoverpModeError())*trkP*trkP;
 
-	float EcalEnergy = ele.correctedEcalEnergy();
-	float EcalEnergyErr = ele.ecalEnergyError();
+	const float EcalEnergy = ele.correctedEcalEnergy();
+	const float EcalEnergyErr = ele.ecalEnergyError();
 
 	ParamCombine( trkP, trkPErr, EcalEnergy, EcalEnergyErr, elClass, finalE, finalEerr );
 	
-	/*ele.addUserFloat( "elClass", elClass );
+	ele.addUserFloat( "elClass", elClass );
 	ele.addUserFloat( "trkModeParamCombinedEnergy", finalE );
 	ele.addUserFloat( "trkModeParamCombinedEnergy", finalEerr );
 	ele.addUserFloat( "trkPMode", trkP );
-	ele.addUserFloat( "trkPModeErr", trkPErr );*/
+	ele.addUserFloat( "trkPModeErr", trkPErr );
 
 }
 
-void ProducerTest::momatPCA_ParamCombine( reco::GsfElectron &ele, const reco::BeamSpot &bs ){
+void ProducerTest::momatPCA_ParamCombine( pat::Electron &ele, const reco::BeamSpot &bs ){
 
 	float finalE = ele.correctedEcalEnergy();
 	float finalEerr = ele.ecalEnergyError();
 	
-	int elClass = ele.classification();
+	const int elClass = ele.classification();
 	
-	float EcalEnergy = ele.correctedEcalEnergy();
-	float EcalEnergyErr = ele.ecalEnergyError();
+	const float EcalEnergy = ele.correctedEcalEnergy();
+	const float EcalEnergyErr = ele.ecalEnergyError();
 	
-	float trkP = 999.9, trkPErr = 999.9;
-		
 	MultiTrajectoryStateTransform mtsTransform( theTrackerGeometry.product(), theMGField.product() );
-	auto const gsfTrk = ele.gsfTrack();
-	
-	std::cout<<"before"<<std::endl;	
+	auto const gsfTrk = ele.gsfTrack();	
 	TrajectoryStateOnSurface innTSOS = mtsTransform.innerStateOnSurface(*gsfTrk);
-	std::cout<<"end"<<std::endl;
-	if ( !innTSOS.isValid() ){
-		std::cout<<"no valid"<<std::endl;
-		return;
-	} else {
-		std::cout<<"valid"<<std::endl;
-	}
+	if ( !innTSOS.isValid() )return;
 	
 	GlobalPoint bsPos;
 	ele_convert( bs.position(), bsPos );
@@ -226,36 +220,35 @@ void ProducerTest::momatPCA_ParamCombine( reco::GsfElectron &ele, const reco::Be
 	math::XYZPointF momatPAC;
 	multiTrajectoryStateMode::momentumFromModeCartesian( pcaTSOS, pcaMom );
 	ele_convert( pcaMom, momatPAC );
-	trkP = momatPAC.R();
+	const float trkP = momatPAC.R();
 
 	MultiGaussianState1D qpState(MultiGaussianStateTransform::multiState1D(pcaTSOS, 0));
 	GaussianSumUtilities1D qpUtils(qpState);
-	trkPErr = trkP * trkP * sqrt(qpUtils.mode().variance());
+	const float trkPErr = trkP * trkP * sqrt(qpUtils.mode().variance());
 
 	ParamCombine( trkP, trkPErr, EcalEnergy, EcalEnergyErr, elClass, finalE, finalEerr );
 	
 
-	/*if ( !ele.hasUserFloat( "elClass" ) ){
+	if ( !ele.hasUserFloat( "elClass" ) ){
 		ele.addUserFloat( "elClass", elClass );
 	}
 	ele.addUserFloat( "momatPCAParamCombinedEnergy", finalE );
 	ele.addUserFloat( "momatPCAParamCombinedEnergyErr", finalEerr );
 	ele.addUserFloat( "momatPCAErr", trkPErr );
-	ele.addUserFloat( "momatPCA", trkP );*/
+	ele.addUserFloat( "momatPCA", trkP );
 
 }
 
-void ProducerTest::momatBS_ParamCombine( reco::GsfElectron &ele, const reco::BeamSpot &bs, const edm::EventSetup& setup ){
+void ProducerTest::momatBS_ParamCombine( pat::Electron &ele, const reco::BeamSpot &bs, const edm::EventSetup& setup ){
 
 	float finalE = ele.correctedEcalEnergy();
 	float finalEerr = ele.ecalEnergyError();
 	
-	int elClass = ele.classification();
+	const int elClass = ele.classification();
 	
-	float EcalEnergy = ele.correctedEcalEnergy();
-	float EcalEnergyErr = ele.ecalEnergyError();
+	const float EcalEnergy = ele.correctedEcalEnergy();
+	const float EcalEnergyErr = ele.ecalEnergyError();
 
-	float trkP = 999.9, trkPErr = 999.9;	
 	MultiTrajectoryStateTransform mtsTransform( theTrackerGeometry.product(), theMGField.product() );
 	GsfConstraintAtVertex constraintAtBS( setup );
 	auto const gsfTrk = ele.gsfTrack();
@@ -270,25 +263,26 @@ void ProducerTest::momatBS_ParamCombine( reco::GsfElectron &ele, const reco::Bea
 	math::XYZPointF momatBS;
 	multiTrajectoryStateMode::momentumFromModeCartesian( bsTSOS, bsMom );
 	ele_convert( bsMom, momatBS );
-	trkP = momatBS.R();
-
+	const float trkP = momatBS.R();
+	
 	MultiGaussianState1D qpState(MultiGaussianStateTransform::multiState1D( bsTSOS, 0 ));
 	GaussianSumUtilities1D qpUtils(qpState);
-	trkPErr = trkP * trkP * sqrt(qpUtils.mode().variance());
+	const float trkPErr = trkP * trkP * sqrt(qpUtils.mode().variance());
 
 	ParamCombine( trkP, trkPErr, EcalEnergy, EcalEnergyErr, elClass, finalE, finalEerr );
 
-	/*if ( !ele.hasUserFloat( "elClass" ) ){
+	if ( !ele.hasUserFloat( "elClass" ) ){
 		ele.addUserFloat( "elClass", elClass );
 	}
 	ele.addUserFloat( "momatBSParamCombinedEnergy", finalE );
 	ele.addUserFloat( "momatBSParamCombinedEnergyErr", finalEerr );
 	ele.addUserFloat( "momatBSErr", trkPErr );
-	ele.addUserFloat( "momatBS", trkP );*/
+	ele.addUserFloat( "momatBS", trkP );
 
 }
 
-void ProducerTest::ParamCombine( float &trkP, float &trkPErr, float &ecalE, float &ecalEerr, int &elClass, float &finalE, float &finalEerr ){
+
+void ProducerTest::ParamCombine( const float &trkP, const float &trkPErr, const float &ecalE, const float &ecalEerr, const int &elClass, float &finalE, float &finalEerr ){
 
 	if ( trkPErr/trkP > 0.5 && ecalEerr/ecalE <=0.5 ){
 

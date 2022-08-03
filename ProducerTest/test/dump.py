@@ -7,10 +7,11 @@ import pandas
 sys.path.append('/afs/cern.ch/work/c/chenguan/private/pycommontool/')
 from FileSystemClass import *
 from HTMLClass import *
+'''
 dirs = DirTree()
 dirs.mkrootdir('test_dummy')
 path = dirs.root
-
+'''
 from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.parseArguments()
@@ -20,12 +21,14 @@ handle  = Handle ("std::vector<pat::Electron>")
 label = ("ProducerTest")
 
 userfloatnames = ['elClass', 
-	'trkModeParamCombinedEnergy', 'trkModeParamCombinedEnergy', 'trkPMode', 'trkPModeErr',
+	'trkModeParamCombinedEnergy', 'trkModeParamCombinedEnergyErr', 'trkPMode', 'trkPModeErr',
 	'momatPCAParamCombinedEnergy', 'momatPCAParamCombinedEnergyErr', 'momatPCAErr', 'momatPCA',
 	'momatBSParamCombinedEnergy', 'momatBSParamCombinedEnergyErr', 'momatBSErr', 'momatBS']
 
 list = []
 names = []
+
+
 # loop over events
 for i,event in enumerate(events):
     #if i > options.maxEvents: break
@@ -41,7 +44,6 @@ for i,event in enumerate(events):
 			userfloats.append( -999.9 )
 	list.append([ 
 		'{:.3f}'.format(e.p()), 
-		'{:.3f}'.format(e.userFloat('ecalTrkEnergyPreCorr')), 
 		'{:.3f}'.format(e.correctedEcalEnergy()),
 		'{:.3f}'.format(e.trackMomentumAtVtx().R()), 
 		'{:.3f}'.format(e.trackMomentumAtVtxWithConstraint().R()),
@@ -49,11 +51,13 @@ for i,event in enumerate(events):
 
 	list[-1] = list[-1] + userfloats
 
-names = [ 'e.p','ecalTrkEnergyPreCorr','correctedEcalEnergy','e.trackMomentumAtVtx().R()','e.trackMomentumAtVtxWithConstraint().R()' ] + userfloatnames
+names = [ 'e.p','correctedEcalEnergy','e.trackMomentumAtVtx().R()','e.trackMomentumAtVtxWithConstraint().R()' ] + userfloatnames
 
 df = pandas.DataFrame( list, columns = names )
-print df[['e.trackMomentumAtVtx().R()','momatPCA','e.trackMomentumAtVtxWithConstraint().R()','momatBS','elClass']]
+print df[['e.trackMomentumAtVtx().R()','momatPCA','momatPCAErr','trkPMode','trkPModeErr','e.trackMomentumAtVtxWithConstraint().R()','momatBS','momatBSErr','elClass']]
 
+
+'''
 myhtml = HTMLClass('Z to ee info for electron track study')
 myhtml.section('')
 string = myhtml.check()
@@ -61,3 +65,4 @@ string = string + '\n' + df[['e.trackMomentumAtVtx().R()','momatPCA','e.trackMom
 fp = open(path + '/test.html','w')
 fp.write(string)
 fp.close()
+'''
