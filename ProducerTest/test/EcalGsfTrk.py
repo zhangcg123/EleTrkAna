@@ -1,4 +1,10 @@
 import FWCore.ParameterSet.Config as cms
+import FWCore.Utilities.FileUtils as FileUtils
+
+import glob
+mylist = glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_3882574*root') + glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_3865280*root') + glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_out_3866275*root')
+for i in range(len(mylist)):
+	mylist[i] = 'file:'+mylist[i]
 
 process = cms.Process("ProducerTest")
 process.load("Configuration.StandardSequences.Services_cff")
@@ -11,10 +17,9 @@ process.GlobalTag.globaltag='106X_upgrade2018_realistic_v16_L1v1'
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
 
 process.source = cms.Source("PoolSource",
-    fileNames = cms.untracked.vstring(
-       #'file:/eos/user/c/chenguan/Tuples/ForEleTrck/ParentFilesOfTheMINIAODSIM/13631887-2D4C-2F4A-8575-59FBD01348E7.root'
-       'file:/eos/user/c/chenguan/CondorOutputs/tmp/out_3865187_0.root',
-    )
+    fileNames = cms.untracked.vstring(*mylist),
+    #fileNames = cms.untracked.vstring('file:/eos/user/c/chenguan/CondorOutputs/TEST/out_3865280_39.root'),
+    duplicateCheckMode = cms.untracked.string('noDuplicateCheck'),
 )
 
 process.ProducerTest = cms.EDProducer('ProducerTest',
@@ -37,8 +42,9 @@ process.out = cms.OutputModule("PoolOutputModule",
     outputCommands = cms.untracked.vstring(
     	'drop *',
       	'keep patElectrons_ProducerTest_*_*',
-    	'keep recoBeamSpot_offlineBeamSpot_*_*',
-	'keep *_calibratedElectrons_*_*',
+	'keep recoVertexs_offlinePrimaryVertices_*_*',
+	#'keep recoBeamSpot_offlineBeamSpot_*_*',
+	#'keep *_calibratedElectrons_*_*',
 	#'keep *_egmGsfElectronIDs_*_*',
 	#'keep *_gedGsfElectrons_*_*',
     	)

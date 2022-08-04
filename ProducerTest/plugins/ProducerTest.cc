@@ -190,6 +190,9 @@ ProducerTest::gsfTrkMode_ParamCombine( pat::Electron &ele ){
 	auto const gsfTrk = ele.gsfTrack();
 	const float trkP = gsfTrk->pMode();
 	const float trkPErr = std::abs(gsfTrk->qoverpModeError())*trkP*trkP;
+	const float trkPx = gsfTrk->pxMode();
+	const float trkPy = gsfTrk->pyMode();
+	const float trkPz = gsfTrk->pzMode();
 
 	const float EcalEnergy = ele.correctedEcalEnergy();
 	const float EcalEnergyErr = ele.ecalEnergyError();
@@ -201,6 +204,9 @@ ProducerTest::gsfTrkMode_ParamCombine( pat::Electron &ele ){
 	ele.addUserFloat( "trkModeParamCombinedEnergy", finalEerr );
 	ele.addUserFloat( "trkPMode", trkP );
 	ele.addUserFloat( "trkPModeErr", trkPErr );
+	ele.addUserFloat( "trkPxMode", trkPx );
+	ele.addUserFloat( "trkPyMode", trkPy );
+	ele.addUserFloat( "trkPzMode", trkPz );
 
 }
 
@@ -226,10 +232,13 @@ void ProducerTest::momatPCA_ParamCombine( pat::Electron &ele, const reco::BeamSp
 		pcaTSOS = innTSOS;
 
 	GlobalVector pcaMom;
-	math::XYZPointF momatPAC;
+	math::XYZPointF momatPCA;
 	multiTrajectoryStateMode::momentumFromModeCartesian( pcaTSOS, pcaMom );
-	ele_convert( pcaMom, momatPAC );
-	const float trkP = momatPAC.R();
+	ele_convert( pcaMom, momatPCA );
+	const float trkP = momatPCA.R();
+	const float trkPx = momatPCA.X();
+	const float trkPy = momatPCA.Y();
+	const float trkPz = momatPCA.Z();
 
 	MultiGaussianState1D qpState(MultiGaussianStateTransform::multiState1D(pcaTSOS, 0));
 	GaussianSumUtilities1D qpUtils(qpState);
@@ -245,6 +254,9 @@ void ProducerTest::momatPCA_ParamCombine( pat::Electron &ele, const reco::BeamSp
 	ele.addUserFloat( "momatPCAParamCombinedEnergyErr", finalEerr );
 	ele.addUserFloat( "momatPCAErr", trkPErr );
 	ele.addUserFloat( "momatPCA", trkP );
+	ele.addUserFloat( "momxatPCA", trkPx );
+	ele.addUserFloat( "momyatPCA", trkPy );
+	ele.addUserFloat( "momzatPCA", trkPz );
 
 }
 
@@ -273,6 +285,9 @@ void ProducerTest::momatBS_ParamCombine( pat::Electron &ele, const reco::BeamSpo
 	multiTrajectoryStateMode::momentumFromModeCartesian( bsTSOS, bsMom );
 	ele_convert( bsMom, momatBS );
 	const float trkP = momatBS.R();
+	const float trkPx = momatBS.X();
+	const float trkPy = momatBS.Y();
+	const float trkPz = momatBS.Z();
 	
 	MultiGaussianState1D qpState(MultiGaussianStateTransform::multiState1D( bsTSOS, 0 ));
 	GaussianSumUtilities1D qpUtils(qpState);
@@ -287,6 +302,9 @@ void ProducerTest::momatBS_ParamCombine( pat::Electron &ele, const reco::BeamSpo
 	ele.addUserFloat( "momatBSParamCombinedEnergyErr", finalEerr );
 	ele.addUserFloat( "momatBSErr", trkPErr );
 	ele.addUserFloat( "momatBS", trkP );
+	ele.addUserFloat( "momxatBS", trkPx );
+	ele.addUserFloat( "momyatBS", trkPy );
+	ele.addUserFloat( "momzatBS", trkPz );
 
 }
 

@@ -16,7 +16,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('python')
 options.parseArguments()
 
-events = Events ("ecalgsftrk.root")
+events = Events ("ecalgsftrk_test.root")
 handle  = Handle ("std::vector<pat::Electron>")
 label = ("ProducerTest")
 
@@ -40,8 +40,7 @@ for i,event in enumerate(events):
     eles = handle.product()
     
     for e in eles:
-	print e.userFloat('tightId')
-	continue
+	print e.userFloat('trkPxMode')
 	userfloats = []
 	for name in userfloatnames:
 		if e.hasUserFloat (name ): 
