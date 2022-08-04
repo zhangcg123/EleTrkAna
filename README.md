@@ -18,6 +18,6 @@ git checkout master
 
 cd -
 
-git@github.com:zhangcg123/EleTrkAna.git
+git clone git@github.com:zhangcg123/EleTrkAna.git
 
 scram b -j 8
