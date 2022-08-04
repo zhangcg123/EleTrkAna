@@ -35,6 +35,7 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
+#include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/PatCandidates/interface/Electron.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
@@ -85,6 +86,7 @@ class ProducerTest : public edm::stream::EDProducer<> {
       // ----------member data ---------------------------
       edm::EDGetTokenT<reco::BeamSpot> beamSpotSrc_;
       edm::EDGetTokenT<std::vector<reco::GsfElectron> > elecSrc_;
+      edm::EDGetTokenT<edm::ValueMap<bool> > elecIdSrc_;
       //edm::ESGetToken<MagneticField, IdealMagneticFieldRecord> magneticFieldToken_;
       //edm::ESGetToken<TrackerGeometry, TrackerDigiGeometryRecord> trackerGeometryToken_;
       edm::ESHandle<MagneticField> theMGField;
@@ -105,7 +107,8 @@ class ProducerTest : public edm::stream::EDProducer<> {
 //
 ProducerTest::ProducerTest(const edm::ParameterSet& iConfig):
   beamSpotSrc_(consumes<reco::BeamSpot>(iConfig.getUntrackedParameter<edm::InputTag>("beamSpotSrc"))),
-  elecSrc_(consumes<std::vector<reco::GsfElectron> >(iConfig.getUntrackedParameter<edm::InputTag>("elecSrc")))
+  elecSrc_(consumes<std::vector<reco::GsfElectron> >(iConfig.getUntrackedParameter<edm::InputTag>("elecSrc"))),
+  elecIdSrc_(consumes<edm::ValueMap<bool> >(iConfig.getUntrackedParameter<edm::InputTag>("elecIdSrc")))
   //magneticFieldToken_(esConsumes<MagneticField, IdealMagneticFieldRecord>()),
   //trackerGeometryToken_(esConsumes<TrackerGeometry, TrackerDigiGeometryRecord>())
 {
@@ -141,6 +144,9 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    edm::Handle<std::vector<reco::GsfElectron> > elesCollection;
    iEvent.getByToken(elecSrc_ , elesCollection);
 
+   edm::Handle<edm::ValueMap<bool> > elecid;
+   iEvent.getByToken(elecIdSrc_, elecid);
+
    iSetup.get<IdealMagneticFieldRecord>().get(theMGField);
    iSetup.get<TrackerDigiGeometryRecord>().get(theTrackerGeometry);
    //auto const& theMGField = iSetup.getData(magneticFieldToken_);
@@ -154,8 +160,9 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	   pat::Electron e = elesCollection->at(i);
 	   
-	   std::cout<<e.electronID("cutBasedPhotonID-Fall17-94X-V2-tight")<<std::endl;
-	   	   
+	   bool passedId = ( *elecid )[ reco::CandidatePtr( elesCollection, i ) ];
+	   if ( !passedId )continue;
+
 	   ProducerTest::gsfTrkMode_ParamCombine( e );
 
 	   momatPCA_ParamCombine( e, bs );

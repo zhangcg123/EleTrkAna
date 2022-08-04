@@ -1,8 +1,10 @@
 import FWCore.ParameterSet.Config as cms
 
 process = cms.Process("ProducerTest")
+process.load("Configuration.StandardSequences.Services_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load("Configuration.Geometry.GeometryRecoDB_cff")
+process.load("Geometry.CaloEventSetup.CaloTowerConstituents_cfi")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 process.GlobalTag.globaltag='106X_upgrade2018_realistic_v16_L1v1'
 
@@ -17,23 +19,30 @@ process.source = cms.Source("PoolSource",
 
 process.ProducerTest = cms.EDProducer('ProducerTest',
 	elecSrc = cms.untracked.InputTag('gedGsfElectrons'),
+	elecIdSrc = cms.untracked.InputTag('egmGsfElectronIDs:cutBasedElectronID-Fall17-94X-V2-tight'),
 	beamSpotSrc  = cms.untracked.InputTag("offlineBeamSpot"),
 )
 
-from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+from EgammaUser.EgammaPostRecoTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
 setupEgammaPostRecoSeq(process,
-			runEnergyCorrections=False,
+			isMiniAOD=False,
+			runEnergyCorrections=True,
 			runVID=True,
 			eleIDModules=['RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Fall17_94X_V2_cff'],
+			#phoIDModules=['RecoEgamma.PhotonIdentification.Identification.cutBasedPhotonID_Fall17_94X_V2_cff'],
 			era='2018-UL')
 
 process.out = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string('ecalgsftrk.root'),
     outputCommands = cms.untracked.vstring(
-      	"keep patElectrons_ProducerTest_*_*",
-	"keep recoBeamSpot_offlineBeamSpot_*_*",
-	)
+    	'drop *',
+      	'keep patElectrons_ProducerTest_*_*',
+    	'keep recoBeamSpot_offlineBeamSpot_*_*',
+	'keep *_calibratedElectrons_*_*',
+	#'keep *_egmGsfElectronIDs_*_*',
+	#'keep *_gedGsfElectrons_*_*',
+    	)
 )
 
-process.p = cms.Path(process.ProducerTest)
+process.p = cms.Path( process.egammaPostRecoSeq * process.ProducerTest )
 process.e = cms.EndPath(process.out)

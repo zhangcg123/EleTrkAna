@@ -20,6 +20,10 @@ events = Events ("ecalgsftrk.root")
 handle  = Handle ("std::vector<pat::Electron>")
 label = ("ProducerTest")
 
+#handle = Handle ("std::vector<reco::GsfElectron>")
+#label = ("gedGsfElectrons")
+
+
 userfloatnames = ['elClass', 
 	'trkModeParamCombinedEnergy', 'trkModeParamCombinedEnergyErr', 'trkPMode', 'trkPModeErr',
 	'momatPCAParamCombinedEnergy', 'momatPCAParamCombinedEnergyErr', 'momatPCAErr', 'momatPCA',
@@ -34,9 +38,10 @@ for i,event in enumerate(events):
     #if i > options.maxEvents: break
     event.getByLabel (label, handle)
     eles = handle.product()
-
+    
     for e in eles:
-	print len(e.electronIDs())
+	print e.userFloat('tightId')
+	continue
 	userfloats = []
 	for name in userfloatnames:
 		if e.hasUserFloat (name ): 

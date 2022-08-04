@@ -1,2 +1,5 @@
 *root
 *.pyc
+*.log
+*.txt
+__init__.py
