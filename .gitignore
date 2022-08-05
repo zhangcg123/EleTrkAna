@@ -3,3 +3,4 @@
 *.log
 *.txt
 __init__.py
+nohup.out

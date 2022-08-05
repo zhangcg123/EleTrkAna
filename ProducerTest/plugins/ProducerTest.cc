@@ -201,7 +201,7 @@ ProducerTest::gsfTrkMode_ParamCombine( pat::Electron &ele ){
 	
 	ele.addUserFloat( "elClass", elClass );
 	ele.addUserFloat( "trkModeParamCombinedEnergy", finalE );
-	ele.addUserFloat( "trkModeParamCombinedEnergy", finalEerr );
+	ele.addUserFloat( "trkModeParamCombinedEnergyErr", finalEerr );
 	ele.addUserFloat( "trkPMode", trkP );
 	ele.addUserFloat( "trkPModeErr", trkPErr );
 	ele.addUserFloat( "trkPxMode", trkPx );

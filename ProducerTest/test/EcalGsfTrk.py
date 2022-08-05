@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 
 import glob
-mylist = glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_3882574*root') + glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_3865280*root') + glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_out_3866275*root')
+mylist = glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/*root')
 for i in range(len(mylist)):
 	mylist[i] = 'file:'+mylist[i]
 
