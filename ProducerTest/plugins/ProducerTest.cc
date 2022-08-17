@@ -160,7 +160,7 @@ ProducerTest::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	   pat::Electron e = elesCollection->at(i);
 	   
-	   bool passedId = ( *elecid )[ reco::CandidatePtr( elesCollection, i ) ];
+	   bool passedId = ( *elecid )[ reco::CandidatePtr( elesCollection, i ) ];	//only tight id electrons stored in the output tree
 	   if ( !passedId )continue;
 
 	   ProducerTest::gsfTrkMode_ParamCombine( e );

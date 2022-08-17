@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
 
 import glob
-mylist = glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/*root')
+mylist = glob.glob('/eos/user/c/chenguan/CondorOutputs/TEST/out_4452341*root')
 for i in range(len(mylist)):
 	mylist[i] = 'file:'+mylist[i]
 
@@ -38,7 +38,7 @@ setupEgammaPostRecoSeq(process,
 			era='2018-UL')
 
 process.out = cms.OutputModule("PoolOutputModule",
-    fileName = cms.untracked.string('ecalgsftrk.root'),
+    fileName = cms.untracked.string('ecalgsftrk4.root'),
     outputCommands = cms.untracked.vstring(
     	'drop *',
       	'keep patElectrons_ProducerTest_*_*',
